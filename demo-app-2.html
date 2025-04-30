@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat UVa API Demo</title>
+  <style>
+    body {
+      margin: 0;
+      background: #c3004a;
+      font-family: sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #chat-container {
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    }
+
+    #chat-header {
+      background: #c3004a;
+      color: white;
+      padding: 1rem;
+      font-weight: bold;
+    }
+
+    #chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      background: #f7f7f7;
+      color: black;
+    }
+
+    #chat-input {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+
+    #chat-input input {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      outline: none;
+    }
+
+    #chat-input button {
+      padding: 0.5rem 1rem;
+      background: #c3004a;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-container">
+  <div id="chat-header">Asistente UVa</div>
+  <div id="chat-messages"></div>
+  <div id="chat-input">
+    <input type="text" id="userInput" placeholder="Escribe tu mensaje..." />
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://defaulte2d0f09666a0425fa7e81ce51d3abb.3a.environment.api.powerplatform.com/copilotstudio/dataverse-backed/authenticated/bots/cr0f7_asistenteUVa/conversations?api-version=2022-03-01-preview";
+
+  let conversationId = null;
+
+  async function startConversation() {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = await res.json();
+    conversationId = data.conversationId;
+
+    // Puedes almacenar también la URL para enviar mensajes
+    console.log("Conversación iniciada:", conversationId);
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendMessage("Tú", message);
+    input.value = "";
+
+    const sendUrl = `${API_URL}/${conversationId}/activities?api-version=2022-03-01-preview`;
+
+    await fetch(sendUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": AUTH_TOKEN,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: "message",
+        from: { id: "user1" },
+        text: message
+      })
+    });
+
+    // Espera respuesta del bot (simplificado)
+    setTimeout(fetchMessages, 1500); // Puede mejorarse con WebSocket o polling
+  }
+
+  async function fetchMessages() {
+    const messagesUrl = `${API_URL}/${conversationId}/activities?api-version=2022-03-01-preview`;
+    const res = await fetch(messagesUrl, {
+      method: "GET",
+      headers: {
+        "Authorization": AUTH_TOKEN
+      }
+    });
+
+    const data = await res.json();
+    const activities = data.activities || [];
+
+    activities.forEach(activity => {
+      if (activity.from?.id !== "user1" && activity.text) {
+        appendMessage("Asistente UVa", activity.text);
+      }
+    });
+  }
+
+  function appendMessage(sender, text) {
+    const container = document.getElementById("chat-messages");
+    const msg = document.createElement("div");
+    msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Inicia conversación al cargar
+  startConversation();
+</script>
+
+</body>
+</html>
