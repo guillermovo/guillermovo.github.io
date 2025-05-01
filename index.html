@@ -37,6 +37,7 @@
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             z-index: 10;
+            opacity: 0.75;
         }
 
         #chat-window {
@@ -89,14 +90,17 @@
             height: 28px;
             background: white;
             border: none;
-            padding: 6px 10px;
+            padding: 0;
+            /* Elimina el padding para evitar que los iconos se desplacen */
             cursor: pointer;
             border-radius: 6px;
-            font-size: 0.8rem;
-
+            font-size: 1.0rem;
+            /* Ajusta el tamaño del icono */
             display: flex;
             justify-content: center;
             align-items: center;
+            text-align: center;
+            /* Asegura que el texto (el icono en este caso) esté centrado */
         }
 
         #maximize-btn {
@@ -107,6 +111,28 @@
         #close-btn {
             top: 8px;
             right: 20px;
+        }
+
+        #chat-hint {
+            position: fixed;
+            bottom: 60px;
+            right: 110px;
+            background-color: white;
+            color: #0b1f4c;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            z-index: 11;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        #chat-hint.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         @media (max-width: 600px) {
@@ -133,10 +159,17 @@
     <!-- Botón flotante con imagen -->
     <div id="chat-toggle" title="Abrir chat"></div>
 
+    <!-- Burbuja de mensaje -->
+    <div id="chat-hint">¿Necesitas ayuda? ¡No dudes en preguntar!</div>
+
     <!-- Ventana del chat -->
     <div id="chat-window" style="display: none;">
-        <button id="maximize-btn" class="button">⛶</button>
-        <button id="close-btn" class="button">X</button>
+        <button id="maximize-btn" class="button">
+            <img src="expand.svg" alt="Expandir" width="16" height="16">
+        </button>
+        <button id="close-btn" class="button">
+            <img src="close.svg" alt="Cerrar" width="20" height="20">
+        </button>
         <iframe id="chat-iframe"
             src="https://copilotstudio.microsoft.com/environments/Default-e2d0f096-66a0-425f-a7e8-1ce51d3abb3a/bots/cr0f7_asistenteUVa/webchat?__version__=2">
         </iframe>
@@ -171,6 +204,15 @@
             chatWindow.classList.toggle("maximized", isMaximized);
             chatWindow.classList.toggle("minimized", !isMaximized);
             chatToggle.style.display = isMaximized ? "none" : "flex"
+        });
+
+        window.addEventListener("load", () => {
+            const hint = document.getElementById("chat-hint");
+            hint.classList.add("visible");
+
+            setTimeout(() => {
+                hint.classList.remove("visible");
+            }, 2000);
         });
     </script>
 </body>
